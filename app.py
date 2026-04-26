@@ -36,6 +36,44 @@ def generate_token(user):
 def home():
     return "Health Profile API Running with Auth"
 
+#---------------
+#Add
+#---------------------
+@app.route("/add_record", methods=["POST"])
+def add_record():
+    token = request.headers.get("Authorization")
+
+    if not token:
+        return jsonify({"error": "Token missing"}), 401
+
+    try:
+        token = token.split(" ")[1]
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        abha_id = decoded["abha_id"]
+
+        data = request.get_json()
+
+        record = {
+            "id": str(uuid.uuid4()),
+            "abha_id": abha_id,
+            "height": data.get("height"),
+            "weight": data.get("weight"),
+            "bp": data.get("bp"),
+            "sugar": data.get("sugar")
+        }
+
+        res = requests.post(
+            f"{SUPABASE_URL}/rest/v1/health_records",
+            json=record,
+            headers=headers
+        )
+
+        return jsonify({"status": "record added"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
+
+
 
 # ------------------------
 # Register
