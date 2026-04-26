@@ -102,6 +102,18 @@ def health():
     return jsonify({"status": "ok"})
 
 
+@app.route("/update_user", methods=["PUT"])
+def update_user():
+    data = request.get_json()
+
+    res = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/users?abha_id=eq.{data['abha_id']}",
+        json=data,
+        headers=headers
+    )
+
+    return jsonify({"status": "updated"})
+    
 # ------------------------
 # Run App (for local)
 # ------------------------
