@@ -93,6 +93,36 @@ def get_users():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ------------------------
+# Register
+# ------------------------
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+
+    password = bcrypt.hashpw(data["password"].encode(), bcrypt.gensalt()).decode()
+
+    user = {
+        "id": str(uuid.uuid4()),
+        "name": data["name"],
+        "age": data["age"],
+        "gender": data["gender"],
+        "blood_group": data["blood_group"],
+        "abha_id": data["abha_id"],
+        "password": password
+    }
+
+    res = requests.post(
+        f"{SUPABASE_URL}/rest/v1/users",
+        json=user,
+        headers=headers
+    )
+
+    if res.status_code != 201:
+        return jsonify({"error": res.text}), 400
+
+    return jsonify({"status": "registered"})
+
 
 # ------------------------
 # Health Check
