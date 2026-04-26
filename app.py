@@ -97,7 +97,7 @@ def get_users():
 # Register
 # ------------------------
 @app.route("/register", methods=["GET", "POST"])
-def register_user():
+def register():
 
     # Browser test
     if request.method == "GET":
@@ -106,11 +106,11 @@ def register_user():
     data = request.get_json()
 
     # Validation
-    required_fields = ["name", "age", "gender", "blood_group", "abha_id"]
+    # required_fields = ["name", "age", "gender", "blood_group", "abha_id"]
 
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} is required"}), 400
+    #for field in required_fields:
+    #    if field not in data:
+    #        return jsonify({"error": f"{field} is required"}), 400
 
     userr = {
         "id": str(uuid.uuid4()),
