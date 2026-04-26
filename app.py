@@ -18,8 +18,13 @@ headers = {
 def home():
     return "Health Profile API Running"
 
-@app.route("/create_user", methods=["POST"])
+@app.route("/create_user", methods=["GET", "POST"])
 def create_user():
+    if request.method == "GET":
+        return "Use POST method to create user"
+
+
+    
     data = request.json
 
     user = {
