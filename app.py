@@ -97,7 +97,7 @@ def get_users():
 # Register
 # ------------------------
 @app.route("/register", methods=["GET", "POST"])
-def create_user():
+def register_user():
 
     # Browser test
     if request.method == "GET":
@@ -112,19 +112,20 @@ def create_user():
         if field not in data:
             return jsonify({"error": f"{field} is required"}), 400
 
-    user = {
+    userr = {
         "id": str(uuid.uuid4()),
         "name": data["name"],
         "age": data["age"],
         "gender": data["gender"],
         "blood_group": data["blood_group"],
         "abha_id": data["abha_id"]
+        "password": data["password"]
     }
 
     try:
         res = requests.post(
             f"{SUPABASE_URL}/rest/v1/users",
-            json=user,
+            json=userr,
             headers=headers
         )
 
@@ -133,7 +134,7 @@ def create_user():
 
         return jsonify({
             "status": "success",
-            "user": user
+            "user": userr
         })
 
     except Exception as e:
