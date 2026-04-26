@@ -119,7 +119,7 @@ def register():
         "gender": data["gender"],
         "blood_group": data["blood_group"],
         "abha_id": data["abha_id"]
-        "password": data["password"]
+        "pass": data["pass"]
     }
 
     try:
