@@ -2,12 +2,15 @@ from flask import Flask, request, jsonify
 import requests
 import uuid
 import os
+import jwt
+import datetime
+import bcrypt
 
 app = Flask(__name__)
 
-# Environment variables
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY")  # change later
 
 headers = {
     "apikey": SUPABASE_KEY,
@@ -16,82 +19,22 @@ headers = {
 }
 
 # ------------------------
-# Home Route
+# Helper: Generate Token
+# ------------------------
+def generate_token(user):
+    payload = {
+        "abha_id": user["abha_id"],
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+
+# ------------------------
+# Home
 # ------------------------
 @app.route("/")
 def home():
-    return jsonify({
-        "message": "Health Profile API Running",
-        "endpoints": {
-            "POST /create_user": "Create new user",
-            "GET /get_users": "Fetch all users"
-        }
-    })
-
-
-# ------------------------
-# Create User
-# ------------------------
-@app.route("/create_user", methods=["GET", "POST"])
-def create_user():
-
-    # Browser test
-    if request.method == "GET":
-        return jsonify({"message": "Use POST method to create user"})
-
-    data = request.get_json()
-
-    # Validation
-    required_fields = ["name", "age", "gender", "blood_group", "abha_id"]
-
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} is required"}), 400
-
-    user = {
-        "id": str(uuid.uuid4()),
-        "name": data["name"],
-        "age": data["age"],
-        "gender": data["gender"],
-        "blood_group": data["blood_group"],
-        "abha_id": data["abha_id"]
-    }
-
-    try:
-        res = requests.post(
-            f"{SUPABASE_URL}/rest/v1/users",
-            json=user,
-            headers=headers
-        )
-
-        if res.status_code != 201:
-            return jsonify({"error": res.text}), 400
-
-        return jsonify({
-            "status": "success",
-            "user": user
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ------------------------
-# Get All Users
-# ------------------------
-@app.route("/get_users", methods=["GET"])
-def get_users():
-
-    try:
-        res = requests.get(
-            f"{SUPABASE_URL}/rest/v1/users",
-            headers=headers
-        )
-
-        return jsonify(res.json())
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return "Health Profile API Running with Auth"
 
 
 # ------------------------
@@ -125,29 +68,61 @@ def register():
     return jsonify({"status": "registered"})
 
 
-
 # ------------------------
-# Health Check
+# Login
 # ------------------------
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok"})
-
-
-@app.route("/update_user", methods=["PUT"])
-def update_user():
+@app.route("/login", methods=["POST"])
+def login():
     data = request.get_json()
 
-    res = requests.patch(
+    res = requests.get(
         f"{SUPABASE_URL}/rest/v1/users?abha_id=eq.{data['abha_id']}",
-        json=data,
         headers=headers
     )
 
-    return jsonify({"status": "updated"})
-    
+    users = res.json()
+
+    if len(users) == 0:
+        return jsonify({"error": "User not found"}), 404
+
+    user = users[0]
+
+    if not bcrypt.checkpw(data["password"].encode(), user["password"].encode()):
+        return jsonify({"error": "Invalid password"}), 401
+
+    token = generate_token(user)
+
+    return jsonify({
+        "status": "success",
+        "token": token
+    })
+
+
 # ------------------------
-# Run App (for local)
+# Protected Route
+# ------------------------
+@app.route("/profile", methods=["GET"])
+def profile():
+    token = request.headers.get("Authorization")
+
+    if not token:
+        return jsonify({"error": "Token missing"}), 401
+
+    try:
+        token = token.split(" ")[1]
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+
+        return jsonify({
+            "message": "Access granted",
+            "user": decoded
+        })
+
+    except:
+        return jsonify({"error": "Invalid token"}), 401
+
+
+# ------------------------
+# Run
 # ------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
