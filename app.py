@@ -96,7 +96,7 @@ def get_users():
 # ------------------------
 # Register
 # ------------------------
-@app.route("/register_user", methods=["GET", "POST"])
+@app.route("/register", methods=["GET", "POST"])
 def create_user():
 
     # Browser test
