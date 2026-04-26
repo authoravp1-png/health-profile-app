@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-SECRET_KEY = "mysecretkey"  # change later
+SECRET_KEY = "sb_publishable_7D7X4CcLCi8pHhTdFVGxqQ_YnKH8DJG"  # change later
 
 headers = {
     "apikey": SUPABASE_KEY,
