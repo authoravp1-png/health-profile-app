@@ -93,52 +93,36 @@ def get_users():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 # ------------------------
 # Register
 # ------------------------
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["POST"])
 def register():
-
-    # Browser test
-    if request.method == "GET":
-        return jsonify({"message": "Use POST method to create user"})
-
     data = request.get_json()
 
-    # Validation
-    # required_fields = ["name", "age", "gender", "blood_group", "abha_id"]
+    password = bcrypt.hashpw(data["password"].encode(), bcrypt.gensalt()).decode()
 
-    #for field in required_fields:
-    #    if field not in data:
-    #        return jsonify({"error": f"{field} is required"}), 400
-
-    userr = {
+    user = {
         "id": str(uuid.uuid4()),
         "name": data["name"],
         "age": data["age"],
         "gender": data["gender"],
         "blood_group": data["blood_group"],
-        "abha_id": data["abha_id"]
-        "pass": data["pass"]
+        "abha_id": data["abha_id"],
+        "password": password
     }
 
-    try:
-        res = requests.post(
-            f"{SUPABASE_URL}/rest/v1/users",
-            json=userr,
-            headers=headers
-        )
+    res = requests.post(
+        f"{SUPABASE_URL}/rest/v1/users",
+        json=user,
+        headers=headers
+    )
 
-        if res.status_code != 201:
-            return jsonify({"error": res.text}), 400
+    if res.status_code != 201:
+        return jsonify({"error": res.text}), 400
 
-        return jsonify({
-            "status": "success",
-            "user": userr
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"status": "registered"})
 
 
 
